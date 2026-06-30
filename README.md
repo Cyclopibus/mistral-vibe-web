@@ -29,8 +29,12 @@ The server will start on `http://0.0.0.0:8000`
 
 #### GET /hello
 - **Method**: GET
+- **Query Parameters**:
+  - `name` (optional): Name to personalize the greeting
 - **Status Code**: 200 OK (success)
-- **Response Body**: `{"message": "Hello World!"}`
+- **Response Body**: 
+  - With name: `{"message": "Hello <name>!"}`
+  - Without name: `{"message": "Hello World!"}`
 
 #### POST /echo
 - **Method**: POST
@@ -50,7 +54,7 @@ The server will start on `http://0.0.0.0:8000`
 
 You can test the endpoints using:
 
-### Test /hello endpoint
+### Test /hello endpoint (no name)
 ```bash
 curl http://localhost:8000/hello
 ```
@@ -58,6 +62,16 @@ curl http://localhost:8000/hello
 Expected response:
 ```json
 {"message": "Hello World!"}
+```
+
+### Test /hello endpoint (with name)
+```bash
+curl "http://localhost:8000/hello?name=Alice"
+```
+
+Expected response:
+```json
+{"message": "Hello Alice!"}
 ```
 
 ### Test /echo endpoint

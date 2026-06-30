@@ -1,6 +1,7 @@
 """Cyclopibus Mistral Vibe Web API - Main Application"""
 
-from litestar import Litestar, get, post
+from typing import Optional
+from litestar import Litestar, get, post, Request
 from litestar.status_codes import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_500_INTERNAL_SERVER_ERROR
 from pydantic import BaseModel
 
@@ -21,14 +22,23 @@ class EchoResponse(BaseModel):
 
 
 @get("/hello", status_code=HTTP_200_OK)
-async def hello_world() -> HelloResponse:
+async def hello_world(request: Request) -> HelloResponse:
     """
-    Simple hello world endpoint.
+    Improved hello endpoint that accepts an optional name parameter.
     
+    Query Parameters:
+        name: Optional name to personalize the greeting
+        
     Returns:
         HelloResponse: JSON response with hello message
+        - If name is provided (even if empty): {"message": "Hello <name>!"}
+        - If name is not provided: {"message": "Hello World!"}
     """
-    return HelloResponse(message="Hello World!")
+    name = request.query_params.get("name")
+    if name is not None:  # Check if parameter is present, even if empty
+        return HelloResponse(message=f"Hello {name}!")
+    else:
+        return HelloResponse(message="Hello World!")
 
 
 @post("/echo", status_code=HTTP_200_OK)

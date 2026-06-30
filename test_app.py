@@ -11,8 +11,10 @@ def client():
     return TestClient(app)
 
 
-def test_hello_endpoint(client):
-    """Test the /hello endpoint returns correct response"""
+# Hello endpoint tests
+
+def test_hello_endpoint_no_name(client):
+    """Test the /hello endpoint without name parameter returns default message"""
     response = client.get("/hello")
     
     # Check status code
@@ -24,6 +26,55 @@ def test_hello_endpoint(client):
     
     # Check content type
     assert "application/json" in response.headers.get("content-type", "")
+
+
+def test_hello_endpoint_with_name(client):
+    """Test the /hello endpoint with name parameter returns personalized message"""
+    test_name = "Alice"
+    response = client.get("/hello", params={"name": test_name})
+    
+    # Check status code
+    assert response.status_code == 200
+    
+    # Check response body
+    response_data = response.json()
+    assert response_data == {"message": f"Hello {test_name}!"}
+
+
+def test_hello_endpoint_with_different_names(client):
+    """Test the /hello endpoint with various names"""
+    test_names = ["Bob", "Charlie", "Diana", "Eve"]
+    
+    for name in test_names:
+        response = client.get("/hello", params={"name": name})
+        assert response.status_code == 200
+        response_data = response.json()
+        assert response_data == {"message": f"Hello {name}!"}
+
+
+def test_hello_endpoint_with_special_characters_name(client):
+    """Test the /hello endpoint with special characters in name"""
+    test_name = "John Doe!@#"
+    response = client.get("/hello", params={"name": test_name})
+    
+    # Check status code
+    assert response.status_code == 200
+    
+    # Check response body
+    response_data = response.json()
+    assert response_data == {"message": f"Hello {test_name}!"}
+
+
+def test_hello_endpoint_with_empty_name(client):
+    """Test the /hello endpoint with empty name parameter"""
+    response = client.get("/hello", params={"name": ""})
+    
+    # Check status code
+    assert response.status_code == 200
+    
+    # Check response body - empty name should still use the format
+    response_data = response.json()
+    assert response_data == {"message": "Hello !"}
 
 
 def test_hello_endpoint_method_not_allowed(client):
