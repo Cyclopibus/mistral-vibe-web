@@ -140,5 +140,63 @@ def test_echo_endpoint_missing_message(client):
     assert response.status_code == 400
 
 
+# Weather endpoint tests
+
+def test_weather_endpoint_missing_city(client):
+    """Test the /weather endpoint without city parameter returns 400"""
+    response = client.get("/weather")
+    
+    # Check status code - should be 400 Bad Request
+    assert response.status_code == 400
+
+
+def test_weather_endpoint_with_city(client):
+    """Test the /weather endpoint with a valid city returns weather data"""
+    # Note: This test depends on the Open-Meteo API being available
+    # We'll use a well-known city that should always be found
+    response = client.get("/weather", params={"city": "Paris"})
+    
+    # Check status code
+    assert response.status_code == 200
+    
+    # Check response body structure
+    response_data = response.json()
+    assert "weather" in response_data
+    assert isinstance(response_data["weather"], str)
+    assert len(response_data["weather"]) > 0
+
+
+def test_weather_endpoint_with_different_cities(client):
+    """Test the /weather endpoint with various cities"""
+    # Test with multiple well-known cities
+    cities = ["London", "New York", "Tokyo", "Berlin"]
+    
+    for city in cities:
+        response = client.get("/weather", params={"city": city})
+        
+        # Check status code
+        assert response.status_code == 200
+        
+        # Check response body structure
+        response_data = response.json()
+        assert "weather" in response_data
+        assert isinstance(response_data["weather"], str)
+        assert len(response_data["weather"]) > 0
+
+
+def test_weather_endpoint_with_invalid_city(client):
+    """Test the /weather endpoint with an invalid city name"""
+    response = client.get("/weather", params={"city": "InvalidCityName12345"})
+    
+    # Should return 400 Bad Request for city not found
+    assert response.status_code == 400
+
+
+def test_weather_endpoint_method_not_allowed(client):
+    """Test that POST method is not allowed on /weather"""
+    response = client.post("/weather")
+    assert response.status_code == 405  # Method Not Allowed
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
