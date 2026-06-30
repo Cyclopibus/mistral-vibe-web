@@ -1,6 +1,5 @@
 """Cyclopibus Mistral Vibe Web API - Main Application"""
 
-from typing import Optional
 from litestar import Litestar, get, post, Request
 from litestar.status_codes import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_500_INTERNAL_SERVER_ERROR
 from pydantic import BaseModel
