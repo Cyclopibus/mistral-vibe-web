@@ -27,6 +27,43 @@ class WeatherResponse(BaseModel):
     weather: str
 
 
+# Open-Meteo API Constants
+OPEN_METEO_GEOCODING_API_URL = "https://geocoding-api.open-meteo.com/v1/search"
+OPEN_METEO_WEATHER_API_URL = "https://api.open-meteo.com/v1/forecast"
+
+# Weather code to human-readable description mapping
+WEATHER_CODE_MAP = {
+    0: "Clear sky",
+    1: "Mainly clear",
+    2: "Partly cloudy",
+    3: "Overcast",
+    45: "Fog",
+    48: "Depositing rime fog",
+    51: "Light drizzle",
+    53: "Moderate drizzle",
+    55: "Dense drizzle",
+    56: "Light freezing drizzle",
+    57: "Dense freezing drizzle",
+    61: "Slight rain",
+    63: "Moderate rain",
+    65: "Heavy rain",
+    66: "Light freezing rain",
+    67: "Heavy freezing rain",
+    71: "Slight snow fall",
+    73: "Moderate snow fall",
+    75: "Heavy snow fall",
+    77: "Snow grains",
+    80: "Slight rain showers",
+    81: "Moderate rain showers",
+    82: "Violent rain showers",
+    85: "Slight snow showers",
+    86: "Heavy snow showers",
+    95: "Thunderstorm",
+    96: "Thunderstorm with slight hail",
+    99: "Thunderstorm with heavy hail"
+}
+
+
 @get("/hello", status_code=HTTP_200_OK)
 async def hello_world(request: Request) -> HelloResponse:
     """
@@ -84,7 +121,7 @@ async def get_weather(request: Request) -> WeatherResponse:
     
     try:
         # Step 1: Use Open-Meteo Geocoding API to get coordinates for the city
-        geocoding_url = f"https://geocoding-api.open-meteo.com/v1/search?name={city}"
+        geocoding_url = f"{OPEN_METEO_GEOCODING_API_URL}?name={city}"
         
         async with httpx.AsyncClient() as client:
             # Get coordinates from city name
@@ -100,48 +137,17 @@ async def get_weather(request: Request) -> WeatherResponse:
             longitude = geocoding_data["results"][0]["longitude"]
             
             # Step 2: Use Open-Meteo Weather API to get current weather
-            weather_url = f"https://api.open-meteo.com/v1/forecast?latitude={latitude}&longitude={longitude}&current_weather=true"
+            weather_url = f"{OPEN_METEO_WEATHER_API_URL}?latitude={latitude}&longitude={longitude}&current_weather=true"
             weather_response = await client.get(weather_url)
             weather_response.raise_for_status()
             weather_data = weather_response.json()
             
             # Extract weather description from current_weather
             current_weather = weather_data["current_weather"]
-            weather_description = current_weather["weathercode"]
+            weather_code = current_weather["weathercode"]
             
             # Convert weather code to human-readable description
-            weather_map = {
-                0: "Clear sky",
-                1: "Mainly clear",
-                2: "Partly cloudy",
-                3: "Overcast",
-                45: "Fog",
-                48: "Depositing rime fog",
-                51: "Light drizzle",
-                53: "Moderate drizzle",
-                55: "Dense drizzle",
-                56: "Light freezing drizzle",
-                57: "Dense freezing drizzle",
-                61: "Slight rain",
-                63: "Moderate rain",
-                65: "Heavy rain",
-                66: "Light freezing rain",
-                67: "Heavy freezing rain",
-                71: "Slight snow fall",
-                73: "Moderate snow fall",
-                75: "Heavy snow fall",
-                77: "Snow grains",
-                80: "Slight rain showers",
-                81: "Moderate rain showers",
-                82: "Violent rain showers",
-                85: "Slight snow showers",
-                86: "Heavy snow showers",
-                95: "Thunderstorm",
-                96: "Thunderstorm with slight hail",
-                99: "Thunderstorm with heavy hail"
-            }
-            
-            weather_description = weather_map.get(weather_description, f"Unknown weather code: {weather_description}")
+            weather_description = WEATHER_CODE_MAP.get(weather_code, f"Unknown weather code: {weather_code}")
             
             return WeatherResponse(weather=weather_description)
             
