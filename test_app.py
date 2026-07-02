@@ -198,5 +198,78 @@ def test_weather_endpoint_method_not_allowed(client):
     assert response.status_code == 405  # Method Not Allowed
 
 
+# Binary conversion endpoint tests
+
+def test_to_binary_endpoint_success(client):
+    """Test the /to-binary endpoint converts positive numbers correctly"""
+    test_cases = [
+        (0, "0"),
+        (1, "1"),
+        (2, "10"),
+        (3, "11"),
+        (4, "100"),
+        (5, "101"),
+        (10, "1010"),
+        (15, "1111"),
+        (16, "10000"),
+        (255, "11111111"),
+        (1024, "10000000000"),
+    ]
+    
+    for number, expected_binary in test_cases:
+        response = client.post("/to-binary", json={"number": number})
+        
+        # Check status code
+        assert response.status_code == 200
+        
+        # Check response body
+        response_data = response.json()
+        assert response_data == {"binary": expected_binary}
+        
+        # Check content type
+        assert "application/json" in response.headers.get("content-type", "")
+
+
+def test_to_binary_endpoint_zero(client):
+    """Test the /to-binary endpoint with zero"""
+    response = client.post("/to-binary", json={"number": 0})
+    
+    # Check status code
+    assert response.status_code == 200
+    
+    # Check response body
+    response_data = response.json()
+    assert response_data == {"binary": "0"}
+
+
+def test_to_binary_endpoint_large_number(client):
+    """Test the /to-binary endpoint with a large number"""
+    large_number = 999999
+    expected_binary = bin(large_number)[2:]  # "11110100001000111111"
+    
+    response = client.post("/to-binary", json={"number": large_number})
+    
+    # Check status code
+    assert response.status_code == 200
+    
+    # Check response body
+    response_data = response.json()
+    assert response_data == {"binary": expected_binary}
+
+
+def test_to_binary_endpoint_missing_number(client):
+    """Test the /to-binary endpoint with missing number field"""
+    response = client.post("/to-binary", json={})
+    
+    # Should return 400 Bad Request for missing required field
+    assert response.status_code == 400
+
+
+def test_to_binary_endpoint_method_not_allowed(client):
+    """Test that GET method is not allowed on /to-binary"""
+    response = client.get("/to-binary")
+    assert response.status_code == 405  # Method Not Allowed
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
