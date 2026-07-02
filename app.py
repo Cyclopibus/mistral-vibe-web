@@ -27,6 +27,16 @@ class WeatherResponse(BaseModel):
     weather: str
 
 
+class BinaryRequest(BaseModel):
+    """Request model for the binary conversion endpoint"""
+    number: int
+
+
+class BinaryResponse(BaseModel):
+    """Response model for the binary conversion endpoint"""
+    binary: str
+
+
 # Open-Meteo API Constants
 OPEN_METEO_GEOCODING_API_URL = "https://geocoding-api.open-meteo.com/v1/search"
 OPEN_METEO_WEATHER_API_URL = "https://api.open-meteo.com/v1/forecast"
@@ -160,5 +170,25 @@ async def get_weather(request: Request) -> WeatherResponse:
         raise HTTPException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Error fetching weather: {str(e)}")
 
 
+@post("/to-binary", status_code=HTTP_200_OK)
+async def convert_to_binary(data: BinaryRequest) -> BinaryResponse:
+    """
+    Convert a base 10 number to binary (base 2).
+    
+    Args:
+        data: BinaryRequest containing the number to convert
+        
+    Returns:
+        BinaryResponse: JSON response with the binary representation
+        - Format: {"binary": "<binary string>"}
+        
+    Raises:
+        HTTP_400_BAD_REQUEST: If the number is negative (validation handled by Pydantic)
+    """
+    # Convert the number to binary string (removes '0b' prefix)
+    binary_string = bin(data.number)[2:]
+    return BinaryResponse(binary=binary_string)
+
+
 # Create the Litestar application
-app = Litestar([hello_world, echo_message, get_weather])
+app = Litestar([hello_world, echo_message, get_weather, convert_to_binary])

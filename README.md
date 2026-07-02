@@ -43,6 +43,21 @@ The server will start on `http://0.0.0.0:8000`
 - **Response Body**: `{"echo": "your message here"}`
 - **Description**: Returns the message that was sent in the request
 
+#### GET /weather
+- **Method**: GET
+- **Query Parameters**:
+  - `city` (required): Name of the city to get weather for
+- **Status Code**: 200 OK (success) / 400 Bad Request (missing or invalid city)
+- **Response Body**: `{"weather": "<weather description>"}`
+- **Description**: Returns current weather description for the specified city using Open-Meteo API
+
+#### POST /to-binary
+- **Method**: POST
+- **Request Body**: `{"number": <integer>}`
+- **Status Code**: 200 OK (success) / 400 Bad Request (validation error)
+- **Response Body**: `{"binary": "<binary string>"}`
+- **Description**: Converts a base 10 integer to its binary (base 2) string representation
+
 ## Project Structure
 
 - `app.py` - Main application with Litestar routes
@@ -84,6 +99,28 @@ curl -X POST http://localhost:8000/echo \
 Expected response:
 ```json
 {"echo": "Hello Echo!"}
+```
+
+### Test /weather endpoint
+```bash
+curl "http://localhost:8000/weather?city=Paris"
+```
+
+Expected response:
+```json
+{"weather": "Clear sky"}
+```
+
+### Test /to-binary endpoint
+```bash
+curl -X POST http://localhost:8000/to-binary \
+  -H "Content-Type: application/json" \
+  -d '{"number": 42}'
+```
+
+Expected response:
+```json
+{"binary": "101010"}
 ```
 
 ### Run all tests
